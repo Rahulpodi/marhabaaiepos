@@ -41,7 +41,7 @@ os.environ['OPENAI_API_KEY'] = st.secrets["openai_secret_key"]
 @st.cache_data
 def load_data():
     # Simulating a time-consuming data loading process
-    df = pd.read_csv(r'C:\Users\rahul\Desktop\Secondary Income\Marhaba AI\Projects\EPOS\Combined Data - 3 Years.csv')
+    df = pd.read_csv('Combined Data - 3 years.csv')
     df['MonthYear'] = pd.to_datetime("01"+"-"+df['MonthShortName']+"-"+df['Year2'].astype(str),format='%d-%b-%Y').dt.date
     df['MonthYearShortForm'] = df['MonthShortName']+"-"+df['Year2'].astype(str)
     return df
