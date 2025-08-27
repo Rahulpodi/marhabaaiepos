@@ -3,3 +3,4 @@ pandas==2.2.2
 plotly==6.1.0
 openai==1.99.2
 matplotlib>=3.7,<3.9
+streamlit-extras==0.7.1
