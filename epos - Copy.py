@@ -35,13 +35,12 @@ st.markdown("""
 ### Data & API Inputs
 
 ## Access key
-os.environ['OPENAI_API_KEY'] = st.secrets["openai_secret_key"]
 
 ## Data
 @st.cache_data
 def load_data():
     # Simulating a time-consuming data loading process
-    df = pd.read_csv('Combined Data - 3 years.csv')
+    df = pd.read_excel(r'Combined Data - 3 years.xlsx')
     df['MonthYear'] = pd.to_datetime("01"+"-"+df['MonthShortName']+"-"+df['Year2'].astype(str),format='%d-%b-%Y').dt.date
     df['MonthYearShortForm'] = df['MonthShortName']+"-"+df['Year2'].astype(str)
     return df
@@ -49,6 +48,7 @@ def load_data():
 ## Call the function to load data (it will be cached, except for the first time)
 combineddata = load_data()
 
+combineddata['Country']='UAE'
 ## required variables derived from data
 retailer = list(set(combineddata['Customer Name']))
 allretailer = retailer.copy()
@@ -1310,148 +1310,291 @@ with tab0:
                 
                 # Force rerun to push new result to top
                 st.rerun()
-
 with tab1:
-    
     st.title("Scorecard")
     
-    # calling backend function
+    # Define custom CSS for black theme and card-like structure
+    st.markdown("""
+        <style>
+            .card {
+                background-color: #1a1a1a;
+                color: #ffffff;
+                border: 1px solid #333333;
+                border-radius: 4px;
+                padding: 10px;
+                margin: 5px;
+                text-align: left;
+                width: 100%;
+            }
+            .card h4 {
+                color: #ffffff;
+                margin: 0 0 8px 0;
+                font-size: 16px;
+            }
+            .card .value {
+                font-size: 18px;
+                font-weight: bold;
+                margin: 4px 0;
+            }
+            .card .change {
+                font-size: 14px;
+            }
+            .positive { color: #4CAF50; }
+            .negative { color: #F44336; }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Calling backend function
     kpival = kpis(combineddata)    
-   
-    # actual brand section
-    categoy_sales, brand_sales, retailer1_sales,retailer1_brand_sales,retailer2_sales,retailer2_brand_sales,retailer3_sales,retailer3_brand_sales = st.columns(8)
-    #other =   [top5retailernames[0],top5retailernames[1],top5retailernames[2],top5retailernames[3],top2brandnames[0],top2brandnames[1]]
+    with st.expander("💼 Competitor Brand Section", expanded=True):
+        table1, table2, table3, table4 = st.columns(4)
 
-    # overall
-    with categoy_sales:
-            st.write('Category')
-            st.metric("Category Sales", f"{kpival[0][0]/1000:,.0f}K", f"{kpival[0][1] * 100:.1f}%")
-            st.metric("Coverage",f"{kpival[0][4]:,.0f}")
-    with brand_sales:
-            st.write('Lamb Weston')
-            st.metric("Sales", f"{kpival[0][2]/1000:,.0f}K", f"{kpival[0][3] * 100:.1f}%")
-            st.metric("Coverage", f"{kpival[0][5]:,.0f}",f"{kpival[0][6] * 100:.1f}% ND")
-        
-    # retailer 1
-    with retailer1_sales:
-        st.write(kpival[3][0],'-','Category')
-        st.metric("Sales", f"{kpival[0][7]/1000:,.0f}K", f"{kpival[0][8] * 100:.1f}%")
-        st.metric("Coverage",f"{kpival[0][11]:,.0f}")
-    with retailer1_brand_sales:
-        st.write(kpival[3][0],'-','Lamb Weston')
-        st.metric("Sales", f"{kpival[0][9]/1000:,.0f}K", f"{kpival[0][10] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[0][12]:,.0f}",f"{kpival[0][13] * 100:.1f}% ND")
-    
-    # retailer 2
-    with retailer2_sales:
-        st.write(kpival[3][1],'-','Category')
-        st.metric("Sales", f"{kpival[0][14]/1000:,.0f}K", f"{kpival[0][15] * 100:.1f}%")
-        st.metric("Coverage",f"{kpival[0][18]:,.0f}")
-    with retailer2_brand_sales:
-        st.write(kpival[3][1],'-','Lamb Weston')
-        st.metric("Sales", f"{kpival[0][16]/1000:,.0f}K", f"{kpival[0][17] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[0][19]:,.0f}",f"{kpival[0][20] * 100:.1f}% ND")
-    
-    # retailer 3
-    with retailer3_sales:
-        st.write(kpival[3][2],'-','Category')
-        st.metric("Sales", f"{kpival[0][21]/1000:,.0f}K", f"{kpival[0][22] * 100:.1f}%")
-        st.metric("Brand Coverage",f"{kpival[0][25]:,.0f}")
-    with retailer3_brand_sales:
-        st.write(kpival[3][2],'-','Lamb Weston')
-        st.metric("Sales", f"{kpival[0][23]/1000:,.0f}K", f"{kpival[0][24] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[0][26]:,.0f}",f"{kpival[0][27] * 100:.1f}% ND")
-    
-    # Competitor 1
-    st.markdown("---")
-    st.write(kpival[3][4])
-    # competitor 1 brand section
-    brand1_categoy_sales, brand1_brand_sales, brand1_retailer1_sales,brand1_retailer1_brand_sales,brand1_retailer2_sales,brand1_retailer2_brand_sales,brand1_retailer3_sales,brand1_retailer3_brand_sales = st.columns(8)
-     
-    with brand1_categoy_sales:
-        st.write('Category')
-        st.metric("Category Sales", f"{kpival[1][0]/1000:,.0f}K", f"{kpival[1][1] * 100:.1f}%")
-        st.metric("Coverage",f"{kpival[1][4]:,.0f}")
-    with brand1_brand_sales:
-        st.write(kpival[3][4])
-        st.metric("Sales", f"{kpival[1][2]/1000:,.0f}K", f"{kpival[1][3] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[1][5]:,.0f}",f"{kpival[1][6] * 100:.1f}% ND")
-    
-    # retailer 1
-    with brand1_retailer1_sales:
-        st.write(kpival[3][0],'-','Category')
-        st.metric("Sales", f"{kpival[1][7]/1000:,.0f}K", f"{kpival[1][8] * 100:.1f}%")
-        st.metric("Coverage",f"{kpival[1][11]:,.0f}")
-    with brand1_retailer1_brand_sales:
-        st.write(kpival[3][0],'-',kpival[3][4])
-        st.metric("Sales", f"{kpival[1][9]/1000:,.0f}K", f"{kpival[1][10] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[1][12]:,.0f}",f"{kpival[1][13] * 100:.1f}% ND")
+        def render_table_html(cat_name, brand_name, cat_vals, brand_vals, cov_vals):
+            def format_delta(val):
+                arrow = "▲" if val > 0 else "▼" if val < 0 else ""
+                color = "green" if val > 0 else "red" if val < 0 else "black"
+                return f'<span style="color: {color}; font-weight: bold;">{arrow} {val*100:.1f}%</span>'
+            return f"""
+            <div style="border: 1px solid #ccc; border-radius: 6px; padding: 0 10px; background-color: #ffffff; color: #000000; font-family: Arial;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: none; margin: 0;">
+                    <thead>
+                        <tr style="border: none;">
+                            <th style="text-align: left; padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; border-top: none; border-bottom: none;">{cat_name}</th>
+                            <th style="text-align: left; padding: 6px 4px;text-align: center; vertical-align: middle; border: none;">{brand_name}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc;border-left: none; border-top: none; border-bottom: none;">Category Sales</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border: none;">Sales</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; font-size: 16px; border-top: none; border-bottom: none;">{cat_vals[0]/1000:.1f}K</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border: none; font-size: 16px;">{brand_vals[0]/1000:.1f}K</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; border-top: none; border-bottom: none;">{format_delta(cat_vals[1])}</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle;border: none;">{format_delta(brand_vals[1])}</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; border-top: none; border-bottom: none;">Coverage</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border: none;">Coverage</td>
+                        </tr>   
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc;border-left: none; border-top: none; border-bottom: none;">{cov_vals[0]:,.0f}</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle;border: none;">{cov_vals[1]:,.0f}</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc;border-left: none; border-top: none; border-bottom: none;"></td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle;border: none;">{format_delta(cov_vals[2])} ND</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            """
 
-    # retailer 2
-    with brand1_retailer2_sales:
-        st.write(kpival[3][1],'-','Category')
-        st.metric("Sales", f"{kpival[1][14]/1000:,.0f}K", f"{kpival[1][15] * 100:.1f}%")
-        st.metric("Coverage",f"{kpival[1][18]:,.0f}")
-    with brand1_retailer2_brand_sales:
-        st.write(kpival[3][1],'-',kpival[3][4])
-        st.metric("Sales", f"{kpival[1][16]/1000:,.0f}K", f"{kpival[1][17] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[1][19]:,.0f}",f"{kpival[1][20] * 100:.1f}% ND")
-    
-    # retailer 3
-    with brand1_retailer3_sales:
-        st.write(kpival[3][2],'-','Category')
-        st.metric("Sales", f"{kpival[1][21]/1000:,.0f}K", f"{kpival[1][22] * 100:.1f}%")
-        st.metric("Brand Coverage",f"{kpival[1][25]:,.0f}")
-    with brand1_retailer3_brand_sales:
-        st.write(kpival[3][2],'-',kpival[3][4])
-        st.metric("Sales", f"{kpival[1][23]/1000:,.0f}K", f"{kpival[1][24] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[1][26]:,.0f}",f"{kpival[1][27] * 100:.1f}% ND")
 
-    # Competitor 2
-    st.markdown("---")
-    st.write(kpival[3][5])
-    # competitor 1 brand section
-    brand2_categoy_sales, brand2_brand_sales, brand2_retailer1_sales,brand2_retailer1_brand_sales,brand2_retailer2_sales,brand2_retailer2_brand_sales,brand2_retailer3_sales,brand2_retailer3_brand_sales = st.columns(8)
-     
-    with brand2_categoy_sales:
-        st.write('Category')
-        st.metric("Category Sales", f"{kpival[2][0]/1000:,.0f}K", f"{kpival[2][1] * 100:.1f}%")
-        st.metric("Coverage",f"{kpival[2][4]:,.0f}")
-    with brand2_brand_sales:
-        st.write(kpival[3][5])
-        st.metric("Sales", f"{kpival[2][2]/1000:,.0f}K", f"{kpival[2][3] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[2][5]:,.0f}",f"{kpival[2][6] * 100:.1f}% ND")
-    
-    # retailer 1
-    with brand2_retailer1_sales:
-        st.write(kpival[3][0],'-','Category')
-        st.metric("Sales", f"{kpival[2][7]/1000:,.0f}K", f"{kpival[2][8] * 100:.1f}%")
-        st.metric("Coverage",f"{kpival[2][11]:,.0f}")
-    with brand2_retailer1_brand_sales:
-        st.write(kpival[3][0],'-',kpival[3][5])
-        st.metric("Sales", f"{kpival[2][9]/1000:,.0f}K", f"{kpival[2][10] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[2][12]:,.0f}",f"{kpival[2][13] * 100:.1f}% ND")
-    
-    # retailer 2
-    with brand2_retailer2_sales:
-        st.write(kpival[3][1],'-','Category')
-        st.metric("Sales", f"{kpival[2][14]/1000:,.0f}K", f"{kpival[2][15] * 100:.1f}%")
-        st.metric("Coverage",f"{kpival[2][18]:,.0f}")
-    with brand2_retailer2_brand_sales:
-        st.write(kpival[3][1],'-',kpival[3][5])
-        st.metric("Sales", f"{kpival[2][16]/1000:,.0f}K", f"{kpival[2][17] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[2][19]:,.0f}",f"{kpival[2][20] * 100:.1f}% ND")
-    
-    # retailer 3
-    with brand2_retailer3_sales:
-        st.write(kpival[3][2],'-','Category')
-        st.metric("Sales", f"{kpival[2][21]/1000:,.0f}K", f"{kpival[2][22] * 100:.1f}%")
-        st.metric("Brand Coverage",f"{kpival[2][25]:,.0f}")
-    with brand2_retailer3_brand_sales:
-        st.write(kpival[3][2],'-',kpival[3][5])
-        st.metric("Sales", f"{kpival[2][23]/1000:,.0f}K", f"{kpival[2][24] * 100:.1f}%")
-        st.metric("Coverage", f"{kpival[2][26]:,.0f}",f"{kpival[2][27] * 100:.1f}% ND")
+        with table1:
+            st.markdown(render_table_html(
+                "Category",
+                "Lamb Weston",
+                cat_vals=[kpival[0][0], kpival[0][1]],
+                brand_vals=[kpival[0][2], kpival[0][3]],
+                cov_vals=[kpival[0][4], kpival[0][5], kpival[0][6]]
+            ), unsafe_allow_html=True)
 
+        with table2:
+            st.markdown(render_table_html(
+                f"{kpival[3][0]} - Category",
+                f"{kpival[3][0]} - Lamb Weston",
+                cat_vals=[kpival[0][7], kpival[0][8]],
+                brand_vals=[kpival[0][9], kpival[0][10]],
+                cov_vals=[kpival[0][11], kpival[0][12], kpival[0][13]]
+            ), unsafe_allow_html=True)
+
+        with table3:
+            st.markdown(render_table_html(
+                f"{kpival[3][1]} - Category",
+                f"{kpival[3][1]} - Lamb Weston",
+                cat_vals=[kpival[0][14], kpival[0][15]],
+                brand_vals=[kpival[0][16], kpival[0][17]],
+                cov_vals=[kpival[0][18], kpival[0][19], kpival[0][20]]
+            ), unsafe_allow_html=True)
+
+        with table4:
+            st.markdown(render_table_html(
+                f"{kpival[3][2]} - Category",
+                f"{kpival[3][2]} - Lamb Weston",
+                cat_vals=[kpival[0][21], kpival[0][22]],
+                brand_vals=[kpival[0][23], kpival[0][24]],
+                cov_vals=[kpival[0][25], kpival[0][26], kpival[0][27]]
+            ), unsafe_allow_html=True)
+
+    
+    with st.expander(f"💼 Competitor {kpival[3][4]} Brand Section", expanded=True):
+        table1, table2, table3, table4 = st.columns(4)
+
+        def render_table_html(cat_name, brand_name, cat_vals, brand_vals, cov_vals):
+            def format_delta(val):
+                arrow = "▲" if val > 0 else "▼" if val < 0 else ""
+                color = "green" if val > 0 else "red" if val < 0 else "black"
+                return f'<span style="color: {color}; font-weight: bold;">{arrow} {val*100:.1f}%</span>'
+            return f"""
+            <div style="border: 1px solid #ccc; border-radius: 6px; padding: 0 10px; background-color: #ffffff; color: #000000; font-family: Arial;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: none; margin: 0;">
+                    <thead>
+                        <tr style="border: none;">
+                            <th style="text-align: left; padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; border-top: none; border-bottom: none;">{cat_name}</th>
+                            <th style="text-align: left; padding: 6px 4px;text-align: center; vertical-align: middle; border: none;">{brand_name}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc;border-left: none; border-top: none; border-bottom: none;">Category Sales</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border: none;">Sales</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; font-size: 16px; border-top: none; border-bottom: none;">{cat_vals[0]/1000:.1f}K</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border: none; font-size: 16px;">{brand_vals[0]/1000:.1f}K</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; border-top: none; border-bottom: none;">{format_delta(cat_vals[1])}</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle;border: none;">{format_delta(brand_vals[1])}</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; border-top: none; border-bottom: none;">Coverage</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border: none;">Coverage</td>
+                        </tr>   
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc;border-left: none; border-top: none; border-bottom: none;">{cov_vals[0]:,.0f}</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle;border: none;">{cov_vals[1]:,.0f}</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc;border-left: none; border-top: none; border-bottom: none;"></td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle;border: none;">{format_delta(cov_vals[2])} ND</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            """
+
+        with table1:
+            st.markdown(render_table_html(
+                "Category",
+                "Lamb Weston",
+                cat_vals=[kpival[1][0], kpival[1][1]],
+                brand_vals=[kpival[1][2], kpival[1][3]],
+                cov_vals=[kpival[1][4], kpival[1][5], kpival[1][6]]
+            ), unsafe_allow_html=True)
+
+        with table2:
+            st.markdown(render_table_html(
+                f"{kpival[3][0]} - Category",
+                f"{kpival[3][0]} - Lamb Weston",
+                cat_vals=[kpival[1][7], kpival[1][8]],
+                brand_vals=[kpival[1][9], kpival[1][10]],
+                cov_vals=[kpival[1][11], kpival[1][12], kpival[1][13]]
+            ), unsafe_allow_html=True)
+
+        with table3:
+            st.markdown(render_table_html(
+                f"{kpival[3][1]} - Category",
+                f"{kpival[3][1]} - Lamb Weston",
+                cat_vals=[kpival[1][14], kpival[1][15]],
+                brand_vals=[kpival[1][16], kpival[1][17]],
+                cov_vals=[kpival[1][18], kpival[1][19], kpival[1][20]]
+            ), unsafe_allow_html=True)
+
+        with table4:
+            st.markdown(render_table_html(
+                f"{kpival[3][2]} - Category",
+                f"{kpival[3][2]} - Lamb Weston",
+                cat_vals=[kpival[1][21], kpival[1][22]],
+                brand_vals=[kpival[1][23], kpival[1][24]],
+                cov_vals=[kpival[1][25], kpival[1][26], kpival[1][27]]
+            ), unsafe_allow_html=True)
+    with st.expander(f"💼 Competitor {kpival[3][5]} Brand Section", expanded=True):
+        table1, table2, table3, table4 = st.columns(4)
+
+        def render_table_html(cat_name, brand_name, cat_vals, brand_vals, cov_vals):
+            def format_delta(val):
+                arrow = "▲" if val > 0 else "▼" if val < 0 else ""
+                color = "green" if val > 0 else "red" if val < 0 else "black"
+                return f'<span style="color: {color}; font-weight: bold;">{arrow} {val*100:.1f}%</span>'
+            return f"""
+            <div style="border: 1px solid #ccc; border-radius: 6px; padding: 0 10px; background-color: #ffffff; color: #000000; font-family: Arial;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: none; margin: 0;">
+                    <thead>
+                        <tr style="border: none;">
+                            <th style="text-align: left; padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; border-top: none; border-bottom: none;">{cat_name}</th>
+                            <th style="text-align: left; padding: 6px 4px;text-align: center; vertical-align: middle; border: none;">{brand_name}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc;border-left: none; border-top: none; border-bottom: none;">Category Sales</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border: none;">Sales</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; font-size: 16px; border-top: none; border-bottom: none;">{cat_vals[0]/1000:.1f}K</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border: none; font-size: 16px;">{brand_vals[0]/1000:.1f}K</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; border-top: none; border-bottom: none;">{format_delta(cat_vals[1])}</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle;border: none;">{format_delta(brand_vals[1])}</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc; border-left: none; border-top: none; border-bottom: none;">Coverage</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border: none;">Coverage</td>
+                        </tr>   
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc;border-left: none; border-top: none; border-bottom: none;">{cov_vals[0]:,.0f}</td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle;border: none;">{cov_vals[1]:,.0f}</td>
+                        </tr>
+                        <tr style="border: none;">
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle; border-right: 1px solid #ccc;border-left: none; border-top: none; border-bottom: none;"></td>
+                            <td style="padding: 6px 4px; text-align: center;vertical-align: middle;border: none;">{format_delta(cov_vals[2])} ND</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            """
+        with table1:
+            st.markdown(render_table_html(
+                "Category",
+                "Lamb Weston",
+                cat_vals=[kpival[2][0], kpival[2][1]],
+                brand_vals=[kpival[2][2], kpival[2][3]],
+                cov_vals=[kpival[2][4], kpival[2][5], kpival[2][6]]
+            ), unsafe_allow_html=True)
+
+        with table2:
+            st.markdown(render_table_html(
+                f"{kpival[3][0]} - Category",
+                f"{kpival[3][0]} - Lamb Weston",
+                cat_vals=[kpival[2][7], kpival[2][8]],
+                brand_vals=[kpival[2][9], kpival[2][10]],
+                cov_vals=[kpival[2][11], kpival[2][12], kpival[2][13]]
+            ), unsafe_allow_html=True)
+
+        with table3:
+            st.markdown(render_table_html(
+                f"{kpival[3][1]} - Category",
+                f"{kpival[3][1]} - Lamb Weston",
+                cat_vals=[kpival[2][14], kpival[2][15]],
+                brand_vals=[kpival[2][16], kpival[2][17]],
+                cov_vals=[kpival[2][18], kpival[2][19], kpival[2][20]]
+            ), unsafe_allow_html=True)
+
+        with table4:
+            st.markdown(render_table_html(
+                f"{kpival[3][2]} - Category",
+                f"{kpival[3][2]} - Lamb Weston",
+                cat_vals=[kpival[2][21], kpival[2][22]],
+                brand_vals=[kpival[2][23], kpival[2][24]],
+                cov_vals=[kpival[2][25], kpival[2][26], kpival[2][27]]
+            ), unsafe_allow_html=True)
+    
 with tab2: #category dropdown
                
     ### Obtaining inputs
